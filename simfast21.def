@@ -1,0 +1,65 @@
+Bootstrap: debootstrap
+MirrorURL: http://ftp.leg.uct.ac.za/ubuntu/
+OSVersion: xenial
+Include: software-properties-common
+
+%environment
+export INSTALLER_PATH=/installer
+ #export SOFTWARE_PATH=/software
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+export LC_ALL=C
+
+%post
+        # Create Installation Directories and export paths. This is needed as part offpost.
+        # %environment scriptlet does not define these paths during %post, only afterr
+        mkdir -p /software/ /installer
+        export INSTALLER_PATH=/installer
+
+        #update apt
+        # Installation of the KERN2 packages
+        apt-get update -y
+        apt-get install -y wget vim apt-utils git
+        add-apt-repository -s ppa:kernsuite/kern-2
+        add-apt-repository ppa:kelleyk/emacs
+        apt-add-repository multiverse
+        apt-add-repository restricted
+        apt-get update -y
+
+        apt-get install -y build-essential transfig texinfo libffi-dev libfftw3-dev llibfftw3-doc nano emacs25
+                                                                 
+        #Installation of FFTW
+        pip install numpy pyfftw ipykernel
+
+        #Installation of gsl
+        cd $INSTALLER_PATH
+        wget ftp://ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz -O - | tar -xz
+        cd $INSTALLER_PATH/gsl-*
+        ./configure
+        make
+        make install
+        export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
+
+        #intsall Simfast21
+        cd $INSTALLER_PATH
+        git clone https://github.com/mariogrs/Simfast21.git
+        cd $INSTALLER_PATH/Simfast21
+        make
+
+        # Create /users to bind home directories into the container.
+        mkdir -p /users /scratch /data
+
+        # Cleanup
+        apt-get clean
+        apt-get autoclean
+
+%runscript
+if [ $# -eq 0 ]; then
+        echo "The following Python modules are installed in this image:"
+        pip freeze
+        echo "Example usage: singularity.img [command] [args] [options]"
+else
+        exec "$@"
+fi
+
+
+
