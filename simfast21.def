@@ -5,7 +5,7 @@ Include: software-properties-common
 
 %environment
 export INSTALLER_PATH=/installer
- #export SOFTWARE_PATH=/software
+#export SOFTWARE_PATH=/software
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib/
 export LC_ALL=C
 
